@@ -1,0 +1,40 @@
+<html lang="en" dir="ltr">
+  <head>
+    <meta charset="utf-8">
+    <title>Avaya Meets Dialogflow</title>
+    <script src = "./jquery.min.js"></script>
+    <script src = "./index.js"></script>
+
+    <link href="//netdna.bootstrapcdn.com/bootstrap/3.0.0/css/bootstrap.min.css" rel="stylesheet">
+    <link href = "./index.css" rel = "stylesheet"/>
+
+  </head>
+  <body>
+    <div id="topleft" style="position:fixed;top:0px;left:0px;height:100px;width:1200px;text-align:left;vertical-align:top;z-index:5;">
+        <img width="120" style="vertical-align:top;margin-top:30px;margin-left:30;margin-bottom:-30px;" src="./avaya_logo.png">
+        <div style="display:inline-block;margin-top:24px;margin-left:3px;text-align:right;">
+            <span style="margin-top:100px;font-family: 'Playfair Display', serif;font-size: 34px;color:#808080;">CX Innovation</span>
+            <br>
+            <span style="margin-top:100px;font-family: 'Playfair Display', serif;font-size: 17px;color:#808080;">CPaaS Dialogflow Connector </span>
+        </div>
+    </div>
+    <div id = "wrapper-div">
+        <p class = "field-label">Avaya Cloud Number: <input id = "avaya-cloud-number"/></p>
+        <p class = "field-label">Project Id: <input id = "project-id"/></p>
+        <p class = "field-label">Welcome Intent Event Name: <input id = "welcome-intent-event-name"/></p>
+        <p class = "field-label create-stuff">Project Credentials: <input id = "project-credentials" type = "file"/></p>
+
+        <button id = "submit-button" class = "btn btn-primary create-stuff">Submit </button>
+
+
+        <button id = "delete-button" class = "btn btn-danger delete-stuff">Delete</button>
+        <button class = "btn btn-info" id ="retrieve-project-button">Retrieve Project Id</button>
+      </br>
+      <div class ="btn-group mode-switch">
+          <button id = "show-create" type="button" class = "btn btn-primary">New</button>
+          <button id = "show-delete" type="button" class = "btn btn-primary">Remove</button>
+          <button id = "show-instructions" type="button" class = "btn btn-primary"><a href ="./instructions.html" >Instructions</a></button>
+      </div>
+    </div>
+  </body>
+</html>

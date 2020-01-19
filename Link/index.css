@@ -1,0 +1,25 @@
+#wrapper-div {
+    margin-left: 20%;
+    margin-right: 20%;
+    margin-top: 9%;
+    background : rgba(208, 0, 0, 0.02);
+    border-radius: 10px;
+    padding-left: 22%;
+}
+
+.field-label {
+    width : 90%;
+}
+
+.field-label input{
+    width : 100%;
+}
+
+
+.mode-switch {
+    margin-top : 4%;
+}
+
+a {
+    color : white;
+}

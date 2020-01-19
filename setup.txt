@@ -1,0 +1,12 @@
+1. Create Dialogflow Project
+  a) Dialogflow project must have an intent with the training phrase "TRIGGER AVAYA CLOUD VOICE" to work with voice to begin the convo
+  b) For any intents which you wish to end the conversation, add the output context 'avaya_cloud_end_conversation' to the intent
+2. Go through authorization steps for Google Cloud
+  a) Create Service Account
+  b) Assign Dialogflow API Admin Role
+  c) Generate JSON key file and download it
+  d) Record the project-id
+3. Procure a number from Avaya Cloud
+4. Set the Request URLsAvaya Cloud to:
+  a) Voice: https://appdev.collaboratory.avaya.com/Dialogflow/cpaas-voice.php
+  b) SMS: https://appdev.collaboratory.avaya.com/Dialogflow/cpaas.php

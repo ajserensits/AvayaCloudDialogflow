@@ -1,0 +1,54 @@
+{
+  "responseId": "b76b1a2f-250d-47a9-abc6-9e7c4aa44ddd-f0f37969",
+  "queryResult": {
+    "queryText": "end it",
+    "parameters": {
+    },
+    "allRequiredParamsPresent": true,
+    "fulfillmentText": "Ok it is ending.",
+    "fulfillmentMessages": [{
+      "text": {
+        "text": ["Ok it is ending."]
+      }
+    }],
+    "outputContexts": [{
+      "name": "projects/avayacloudtest-vowukg/agent/sessions/1579412083/contexts/avaya_cloud_end_conversation",
+      "lifespanCount": 5
+    }, {
+      "name": "projects/avayacloudtest-vowukg/agent/sessions/1579412083/contexts/test_it_twice",
+      "lifespanCount": 3
+    }, {
+      "name": "projects/avayacloudtest-vowukg/agent/sessions/1579412083/contexts/avaya_cloud_begin_conversation",
+      "lifespanCount": 2
+    }, {
+      "name": "projects/avayacloudtest-vowukg/agent/sessions/1579412083/contexts/__system_counters__",
+      "lifespanCount": 1,
+      "parameters": {
+        "no-input": 0.0,
+        "no-match": 0.0
+      }
+    }, {
+      "name": "projects/avayacloudtest-vowukg/agent/sessions/1579412083/contexts/testitfulfillment",
+      "lifespanCount": 5,
+      "parameters": {
+        "hook1": "val1",
+        "hook2": "val2",
+        "hook3": "val3"
+      }
+    }, {
+      "name": "projects/avayacloudtest-vowukg/agent/sessions/1579412083/contexts/test_it_context",
+      "lifespanCount": 3
+    }],
+    "intent": {
+      "name": "projects/avayacloudtest-vowukg/agent/intents/6e647fc5-a6b2-4238-a36c-0cf0d28610a0",
+      "displayName": "EndSession"
+    },
+    "intentDetectionConfidence": 0.7737907,
+    "languageCode": "en"
+  },
+  "originalDetectIntentRequest": {
+    "payload": {
+    }
+  },
+  "session": "projects/avayacloudtest-vowukg/agent/sessions/1579412083"
+}

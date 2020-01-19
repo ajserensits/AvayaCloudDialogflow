@@ -1,0 +1,23 @@
+{
+  "fulfillmentText" : "MY dummy" ,
+  "fulfillmentMessages": [
+    {
+        "text" : {
+          "text" : [
+              "My dummy response"
+          ]
+        }
+    }
+  ] ,
+  "outputContexts": [
+        {
+          "name": "projects/<PROJECT_ID>/agent/sessions/<SESSION_ID>/contexts/myhookcontextstuff",
+          "lifespanCount": 7,
+          "parameters": {
+            "hook1": "val1" ,
+            "hook2" : "val2" ,
+            "hook3" : "val3"
+          }
+        }
+      ]
+}

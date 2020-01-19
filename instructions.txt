@@ -1,0 +1,5 @@
+Create service account for project
+Give dialogflow api access
+download json key
+set env variable
+load google libraries
