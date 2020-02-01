@@ -39,11 +39,11 @@
       $json = json_decode($response , $assoc = true);
       $json["fulfillmentMessages"][0]["text"]["text"][0] = $message;
       $json["fulfillmentText"] = $message;
-      //unset($json["outputContexts"]);
+      unset($json["outputContexts"]);
 
-      $json["outputContexts"][0]["name"] = str_replace("<PROJECT_ID>" , $project_id , $json["outputContexts"][0]["name"]);
-      $json["outputContexts"][0]["name"] = str_replace("<SESSION_ID>" , $session , $json["outputContexts"][0]["name"]);
-      $json["outputContexts"][0]["name"] = str_replace("myhookcontextstuff" , $context , $json["outputContexts"][0]["name"]);
+      //$json["outputContexts"][0]["name"] = str_replace("<PROJECT_ID>" , $project_id , $json["outputContexts"][0]["name"]);
+      //$json["outputContexts"][0]["name"] = str_replace("<SESSION_ID>" , $session , $json["outputContexts"][0]["name"]);
+      //$json["outputContexts"][0]["name"] = str_replace("myhookcontextstuff" , $context , $json["outputContexts"][0]["name"]);
 
 
 

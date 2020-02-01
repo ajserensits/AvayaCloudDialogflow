@@ -75,8 +75,11 @@ function retrieveProjectId()
           var json = JSON.parse(data);
           if(json && json.projectId != "<NONE>") {
               $('#project-id').val(json.projectId);
+              $('#webhook').val(json.webhook);
+              $('#welcome-intent-event-name').val(json.welcome_intent);
           } else {
               $('#project-id').val('');
+              $('#webhook').val("");
           }
     });
 }
@@ -86,6 +89,7 @@ function submit()
       var phone = $('#avaya-cloud-number').val();
       var projectId = $('#project-id').val();
       var eventName = $('#welcome-intent-event-name').val();
+      var webhook = $('#webhook').val();
 
       if(phone == undefined || phone == "") {
           alert("Must enter a phone number!");
@@ -104,6 +108,13 @@ function submit()
           }
       }
 
+      if(webhook == undefined || webhook == "") {
+          var yayW = confirm("If you continue without a web hook, you will not be able to access the default Avaya Cloud Request parameters.  Continue?");
+          if(! yayW) {
+              return;
+          }
+      }
+
       var file = document.getElementById("project-credentials").files[0];
       if(file == undefined || file == "") {
           alert("Must enter a file!");
@@ -117,7 +128,7 @@ function submit()
             console.log("Result: " , evt.target.result);
 
             var json = JSON.parse(evt.target.result);
-            sendIt(phone , projectId , json , eventName);
+            sendIt(phone , projectId , json , eventName , webhook);
             console.log("Json: " , json);
             $('#project-credentials').val('');
         }
@@ -127,10 +138,10 @@ function submit()
     }
 }
 
-function sendIt(phone , projectId , file , eventName)
+function sendIt(phone , projectId , file , eventName , webhook)
 {
     $.ajax({
-          url : PROTOCOL + "//" + HOST + "/" + PATH + "/link.php?phone=" + phone + "&projectId=" + projectId + "&eventName=" + eventName ,
+          url : PROTOCOL + "//" + HOST + "/" + PATH + "/link.php?phone=" + phone + "&projectId=" + projectId + "&eventName=" + eventName + "&webhook=" + encodeURIComponent(webhook) ,
           method : "POST" ,
           data : JSON.stringify(file) ,
           success : function(data) {

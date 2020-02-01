@@ -19,6 +19,7 @@
       putenv('GOOGLE_APPLICATION_CREDENTIALS='.$key_file_path);
 
       use Google\Cloud\Dialogflow\V2\SessionsClient;
+      use Google\Cloud\Dialogflow\V2\Context;
       use Google\Cloud\Dialogflow\V2\QueryInput;
       use Google\Cloud\Dialogflow\V2\TextInput;
       use Google\Cloud\Dialogflow\V2\CreateIntentRequest;
@@ -122,6 +123,24 @@
             }
 
             return false;
+        }
+
+        function createContext($context_name , $arr)
+        {
+            $params = new MapField();
+            foreach ($arr as $key => $value)
+            {
+                $params->offsetSet($key , $value);
+            }
+
+            $strct = new Struct();
+            $strct->setFields($params);
+
+            $context = new Context();
+            $context->setName($context_name);
+            $context->setParameters($strct);
+
+            return $context;
         }
 
 ?>

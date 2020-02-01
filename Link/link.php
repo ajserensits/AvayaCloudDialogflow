@@ -5,6 +5,7 @@
       $phone = $_GET["phone"];
       $projectId = $_GET["projectId"];
       $eventName = $_GET["eventName"];
+      $webhook = $_GET["webhook"];
       $fileName = $projectId.".json";
 
       $phone = str_replace(" " , "" , $phone);
@@ -22,6 +23,7 @@
       $mapping["project_id"] = $projectId;
       $mapping["key_file"] = $fileName;
       $mapping["welcome_intent"] = $eventName;
+      $mapping["webhook"] = $webhook;
       file_put_contents("../credentials/".$fileName , $post);
 
 

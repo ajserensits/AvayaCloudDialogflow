@@ -9,6 +9,21 @@
       $from = $json["From"];
       $to = $json["To"];
       $body = $json["SpeechResult"];
+      $sid = $json["CallSid"];
+
+      $zang_contexts_init = array();
+      $zang_contexts_init["Customer"] = str_replace("+" , "" , $from);
+      $zang_contexts_init["From"] = str_replace("+" , "" , $from);
+      $zang_contexts_init["Agent"] = str_replace("+" , "" , $to);
+      $zang_contexts_init["To"] = str_replace("+" , "" , $to);
+      $zang_contexts_init["Sid"] = $sid;
+      $zang_contexts_init["Body"] = $body;
+
+      $zang_contexts = array();
+      $zang_contexts["From"] = str_replace("+" , "" , $from);
+      $zang_contexts["To"] = str_replace("+" , "" , $to);
+      $zang_contexts["Sid"] = $sid;
+      $zang_contexts["Body"] = $body;
 
       //Set env
       $key_file_base = "/var/www/html/Dialogflow/credentials/";
@@ -26,6 +41,8 @@
       $key_file = $project_info["key_file"];
       $welcome_intent_event_name = $project_info["welcome_intent"];
       $key_file_path = $key_file_base.$key_file;
+      $webhook = $project_info["webhook"];
+
 
       putenv('GOOGLE_APPLICATION_CREDENTIALS='.$key_file_path);
 
@@ -52,10 +69,15 @@
       $event_way = false;
       if(isExistingSession($from , $to) == true) {
           $session_id = getExistingSession($from , $to);
+          $zang_contexts["Session"] = $session_id;
+          sendWebhook($webhook , $zang_contexts);
       } else {
           $session_id = createNewSession($from , $to);
           $event_way = true;
           $body = "TRIGGER AVAYA CLOUD VOICE";
+          $zang_contexts_init["Session"] = $session_id;
+          $zang_contexts_init["Body"] = "<<INIT>>";
+          sendWebhook($webhook , $zang_contexts_init);
       }
 
       //Push texts into an array
@@ -78,8 +100,42 @@
           destroySession($session_id);
       }
 
+      $response_array = array();
+      $forward_number = detectForwardCall($intent_id , $project_id);
+
+
       //Create Avaya Cloud Inbound XML Response
-      $xml_response = zangRespond($sms_text , $end_of_conversation);
+      //$json = google_translate($sms_text , "es");
+      //$sms_text = $json['data']['translations'][0]['translatedText'];
+
+      if($end_of_conversation == true)
+      {
+          $zang_voice_resp = zangSay($sms_text);
+          array_push($response_array , $zang_voice_resp);        
+      }
+      else if($forward_number != null)
+      {
+          $zang_voice_resp = zangSay($sms_text);
+          array_push($response_array , $zang_voice_resp);
+
+          $zang_forward = zangDial($forward_number);
+          array_push($response_array , $zang_forward);
+
+          destroySession($session_id);
+      }
+      else
+      {
+          $zang_voice_resp = zangGather($sms_text);
+          array_push($response_array , $zang_voice_resp);
+      }
+
+      if($end_of_conversation == true) {
+          $zang_hangup = zangHangup();
+          array_push($response_array , $zang_hangup);
+      }
+
+
+      $xml_response = zangResponse($response_array);
       file_put_contents("./xml_response.xml" , $xml_response);
       header('application/xml');
       echo $xml_response;
@@ -113,44 +169,6 @@ function detect_intent_texts($projectId, $texts, $sessionId, $languageCode = 'en
             $queryResult = $response->getQueryResult();
             $diagnosticInfo = $queryResult->getDiagnosticInfo();
             $outputContexts = $queryResult->getOutputContexts();
-            $contexts = $outputContexts;
-            $iter = $contexts->getIterator();
-
-            while($iter->valid() == true)
-            {
-              $current = $iter->current();
-              $name = $current->getName();
-              $parameters = $current->getParameters();
-              if(isset($parameters) == true) {
-                $fields = $parameters->getFields();
-
-
-                //Iterate through output context keys / values 
-                $fieldsIter = $fields->getIterator();
-                while($fieldsIter->valid() == true)
-                {
-                    $cField = $fieldsIter->current();
-                    $cKey = $fieldsIter->key();
-                    $cVal = $cField->getStringValue();
-                    file_put_contents("./outcontextsTHEVAL.txt", $cVal . PHP_EOL, FILE_APPEND);
-                    file_put_contents("./outcontextsTHEKEY.txt", $cKey . PHP_EOL, FILE_APPEND);
-
-                    $fieldsIter->next();
-                }
-
-                file_put_contents("./outcontextsfields.txt", json_encode((array) $fields) . PHP_EOL, FILE_APPEND);
-              }
-              file_put_contents("./outcontextsvalues.txt", json_encode((array) $parameters) . PHP_EOL, FILE_APPEND);
-
-              file_put_contents("./outcontexts.txt", $name . PHP_EOL, FILE_APPEND);
-              $name = explode("/" , $name);
-              $name = $name[6];
-              if($name == $context_name) {
-                  return true;
-              }
-              $iter->next();
-            }
-            file_put_contents("./qr.txt" , json_encode((array) $outputContexts));
             $queryText = $queryResult->getQueryText();
             $intent = $queryResult->getIntent();
             $displayName = $intent->getDisplayName();
@@ -244,6 +262,54 @@ function zangRespond($body ,$end)
       $response = '<Response><Gather method="POST" input="speech" language="en-US" timeout="10" action="https://scriptingsolution.com/Dialogflow/cpaas-voice.php"><Say>'.$body.'</Say></Gather></Response>';
     }
     return $response;
+}
+
+function zangResponse($elements)
+{
+    $begin = "<Response>";
+    $body = "";
+    $i = 0;
+    for($i = 0; $i < count($elements); $i++)
+    {
+        $body = $body.$elements[$i];
+    }
+    $end = "</Response>";
+
+    $response = $begin.$body.$end;
+
+    return $response;
+}
+function zangForwardRespond($body , $forward_number)
+{
+
+      $response = '<Response><Say>'.$body.'</Say><Dial>'.$forward_number.'</Dial></Response>';
+
+      return $response;
+}
+
+function zangHangup()
+{
+    return "<Hangup/>";
+}
+
+function zangGather($body)
+{
+    $gather_first = '<Gather method="POST" input="speech" language="en-US" timeout="10" action="https://scriptingsolution.com/Dialogflow/cpaas-voice.php">';
+    $gather_say = zangSay($body);
+    $gather_end = '</Gather>';
+
+    $xml = $gather_first.$gather_say.$gather_end;
+    return $xml;
+}
+
+function zangSay($body)
+{
+    return "<Say>".$body."</Say>";
+}
+
+function zangDial($number)
+{
+    return "<Dial>".$number."</Dial>";
 }
 
 function isExistingSession($phone , $zang)
@@ -397,6 +463,62 @@ function endOfConversation($intent , $project_id)
       return hasContext($intent , "avaya_cloud_end_conversation" , $project_id);
 }
 
+function detectForwardCall($intent , $project_id)
+{
+      $context = getPartialContext($intent , "avaya_cloud_forward" , $project_id);
+
+      if(isset($context) == false) {
+          return null;
+      }
+
+      $arr = explode("_" , $context);
+
+      if(count($arr) < 4) {
+          return null;
+      }
+
+      $forward_num = $arr[3];
+
+      return $forward_num;
+}
+
+function getPartialContext($intent_id , $context_name , $project_id)
+{
+
+    if(isset($intent_id) == false) {
+        return null;
+    }
+
+    $intentsClient = new IntentsClient();
+    try {
+        $formattedName = $intentsClient->intentName($project_id, $intent_id);
+        $response = $intentsClient->getIntent($formattedName);
+        $contexts = $response->getOutputContexts();
+        $iter = $contexts->getIterator();
+
+        while($iter->valid() == true)
+        {
+          file_put_contents("./inloop.txt" , "True");
+          $current = $iter->current();
+          $name = $current->getName();
+          $name = explode("/" , $name);
+          $name = $name[6];
+          if(strpos($name , $context_name) !== false) {
+              return $name;
+          }
+          $iter->next();
+        }
+    } catch(Exception $e) {
+        file_put_contents("./exception-hascontext.txt" , json_encode((array) $e));
+    } finally {
+      $intentsClient->close();
+    }
+
+    return null;
+}
+
+
+
 function hasContext($intent_id , $context_name , $project_id)
 {
 
@@ -450,6 +572,106 @@ function findBeginningIntent($project_id)
       }  finally {
             $intentsClient->close();
         }
+}
+
+function createContext($context_name , $arr)
+{
+    $params = new MapField();
+    foreach ($arr as $key => $value)
+    {
+        $params->offsetSet($key , $value);
+    }
+
+    $strct = new Struct();
+    $strct->setFields($params);
+
+    $context = new Context();
+    $context->setName($context_name);
+    $context->setParameters($strct);
+
+    return $context;
+}
+
+function getContextValue($contexts , $context_name , $key)
+{
+
+    $iter = $contexts->getIterator();
+
+    while($iter->valid() == true)
+    {
+      $current = $iter->current();
+      $name = $current->getName();
+      $name = explode("/" , $name);
+      $name = $name[6];
+      if($name == $context_name)
+      {
+          $parameters = $current->getParameters();
+          if(isset($parameters) == true)
+          {
+            $fields = $parameters->getFields();
+
+            //Iterate through output context keys / values
+            $fieldsIter = $fields->getIterator();
+            while($fieldsIter->valid() == true)
+            {
+                $cField = $fieldsIter->current();
+                $cKey = $fieldsIter->key();
+                if($cKey == $key) {
+                    $cVal = $cField->getStringValue();
+                    return $cVal;
+                }
+
+                $fieldsIter->next();
+            }
+
+          }
+      }
+      $iter->next();
+    }
+
+    return null;
+}
+
+function google_translate($txt , $target_language)
+{
+    //$tolanguage="en";
+    $url='https://translation.googleapis.com/language/translate/v2?key=AIzaSyDlgdezcsCPTcMg2btTo_uAdjA15FvHrEk';
+    $ch = curl_init();
+    curl_setopt($ch, CURLOPT_URL,$url);
+    curl_setopt($ch, CURLOPT_RETURNTRANSFER,1);
+    curl_setopt($ch, CURLOPT_POST, 1);
+    curl_setopt($ch, CURLOPT_HTTPHEADER, array(
+      'Content-Type: application/json'
+      ));
+    curl_setopt($ch, CURLOPT_POSTFIELDS, '{ "q": "'.$txt.'", "target": "'.$target_language.'", "format": "text" }');
+    $result = curl_exec($ch);
+    curl_close($ch);
+    $json = json_decode($result, true);
+    return $json;
+    //$message=$json[data][translations][0][translatedText];
+    //$fromlanguage=$json[data][translations][0][detectedSourceLanguage];
+}
+
+function sendWebhook($webhook , $contexts)
+{
+    if(isset($webhook) != true)
+    {
+        return;
+    }
+
+    $queryStr = "";
+
+    $first = false;
+    foreach($contexts as $key => $value)
+    {
+        $queryStr = $queryStr.urlencode($key)."=".urlencode($value)."&";
+    }
+
+    $queryStr = substr($queryStr, 0, -1);
+
+    $command = "curl '".$webhook."?".$queryStr."'";
+
+    $resp = `$command`;
 }
 
 

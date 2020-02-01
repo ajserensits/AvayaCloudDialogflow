@@ -1,1 +1,1 @@
-<Response><Say>Ok it is ending.</Say><Hangup/></Response>
+<Response><Say>Your call will now be forwarded.</Say><Dial>14845678784</Dial></Response>

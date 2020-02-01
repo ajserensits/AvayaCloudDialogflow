@@ -29,6 +29,9 @@
         if($found == true) {
             $response = array();
             $response["projectId"] = $mappings["Mappings"][$i]["project_id"];
+            $response["webhook"] = $mappings["Mappings"][$i]["webhook"];
+            $response["welcome_intent"] = $mappings["Mappings"][$i]["welcome_intent"];
+
             echo json_encode($response);
         } else {
             $response = array();
